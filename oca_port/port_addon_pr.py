@@ -616,15 +616,17 @@ class BranchesDiff(Output):
         self.from_branch_path_commits, _ = self._get_branch_commits(
             self.app.from_branch.ref(), self.path
         )
-        self.from_branch_all_commits, _ = self._get_branch_commits(
-            self.app.from_branch.ref()
-        )
+        # self.from_branch_all_commits, _ = self._get_branch_commits(
+        #     self.app.from_branch.ref()
+        # )
         self.to_branch_path_commits, _ = self._get_branch_commits(
             self.app.to_branch.ref(), self.path
         )
-        self.to_branch_all_commits, _ = self._get_branch_commits(
-            self.app.to_branch.ref()
-        )
+        self.to_branch_all_commits = []
+        # self.to_branch_all_commits, _ = self._get_branch_commits(
+        #
+        #     self.app.to_branch.ref()
+        # )
         self.commits_diff = self.get_commits_diff()
         self.serialized_diff = self._serialize_diff(self.commits_diff)
         # Once the analyze is done, we store the cache on disk
@@ -648,6 +650,7 @@ class BranchesDiff(Output):
             - a list of Commit objects `[Commit, ...]`
             - a dict of Commits objects grouped by SHA `{SHA: Commit, ...}`
         """
+        print("get_branch_commits", branch, path)
         commits = self.app.repo.iter_commits(branch, paths=path)
         commits_list = []
         commits_by_sha = {}
@@ -677,6 +680,7 @@ class BranchesDiff(Output):
         return (
             # Skip merge commit
             len(commit.parents) > 1
+            or int(commit.authored_datetime.split("-")[0]) < 2024
             or commit.author_email in AUTHOR_EMAILS_TO_SKIP
             or any([term in commit.summary for term in SUMMARY_TERMS_TO_SKIP])
             or all(path_to_skip(path) for path in commit.paths)
@@ -768,6 +772,9 @@ class BranchesDiff(Output):
                     pr_commit_paths = {
                         path for path in pr_commit.paths if not path_to_skip(path)
                     }
+                    if len(pr_commit.summary) > 15 and pr_commit.summary in [c.summary for c in self.to_branch_path_commits]:
+                        print(f"SUMMARY FOUND {pr} {pr_commit.summary} {pr_commit_paths}")
+                        continue
                     pr.paths.update(pr_commit_paths)
                     # Check that this PR commit does not change the current
                     # addon we are interested in, in such case also check
@@ -777,6 +784,7 @@ class BranchesDiff(Output):
                     # in the past (with git-format-patch), and we now want
                     # to port the remaining chunks.
                     if pr_commit not in self.to_branch_path_commits:
+                        print(f"{pr_commit.raw_commit} {pr_commit.summary} NOT IN", [(c.raw_commit, c.summary) for c in self.to_branch_path_commits])
                         paths = set(pr_commit_paths)
                         # A commit could have been ported several times
                         # if it was impacting several addons and the
@@ -820,6 +828,7 @@ class BranchesDiff(Output):
                             # This PR commit has already been appended, skip
                             break
                     else:
+                        print("APPEND", pr, commit.summary)
                         commits_by_pr[pr].append(pr_commit)
             # No related PR: add the commit to the fake PR
             else:
