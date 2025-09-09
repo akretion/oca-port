@@ -636,7 +636,7 @@ class BranchesDiff(Output):
             data[pr.number]["missing_commits"] = [commit.hexsha for commit in commits]
         return data
 
-    def _get_branch_commits(self, branch, rootdir, path="."):
+    def _get_branch_commits(self, branch, rootdir, path=".", since="2025-01-01"):
         """Get commits from the local repository for the given `branch`.
 
         An optional `path` parameter can be set to limit commits to a given folder.
@@ -647,7 +647,7 @@ class BranchesDiff(Output):
             - a list of Commit objects `[Commit, ...]`
             - a dict of Commits objects grouped by SHA `{SHA: Commit, ...}`
         """
-        commits = self.app.repo.iter_commits(branch, paths=path)
+        commits = self.app.repo.iter_commits(branch, paths=path, since=since)
         commits_list = []
         commits_by_sha = {}
         for commit in commits:
