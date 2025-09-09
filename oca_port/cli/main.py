@@ -126,6 +126,11 @@ from ..utils.misc import bcolors as bc
     help="""Token to use when requesting GitHub API (highly recommended
             to not trigger the "API rate limit exceeded" error).""",
 )
+@click.option(
+    "--since-year",
+    type=int,
+    help="Year from which to start searching for unported commits.",
+)
 def main(
     addon_path: str,
     target_addon_path: str,
@@ -146,6 +151,7 @@ def main(
     clear_cache: bool,
     dry_run: bool,
     github_token: str,
+    since_year: int,
 ):
     """Migrate ADDON from SOURCE to TARGET or list Pull Requests to port.
 
@@ -184,6 +190,7 @@ def main(
             dry_run=dry_run,
             cli=True,
             github_token=github_token,
+            since=f"{since_year}-01-01" if since_year else None,
         )
     except ForkValueError as exc:
         error_msg = prepare_remote_error_msg(*exc.args)

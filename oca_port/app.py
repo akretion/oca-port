@@ -81,6 +81,7 @@ class App(Output):
     no_cache: bool = False
     clear_cache: bool = False
     github_token: str = None
+    since: str = None
     cli: bool = False  # Not documented, should not be used outside of the CLI
 
     _available_outputs = ("json",)

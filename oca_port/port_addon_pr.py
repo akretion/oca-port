@@ -601,9 +601,10 @@ class BranchesDiff(Output):
             self.app.from_branch.ref(),
             self.app.source.addons_rootdir,
             self.app.source.addon_path,
+            since=self.app.since,
         )
         self.from_branch_all_commits, _ = self._get_branch_commits(
-            self.app.from_branch.ref(), self.app.source.addons_rootdir
+            self.app.from_branch.ref(), self.app.source.addons_rootdir, since=self.app.since
         )
         # On target branch, depending how a module has been renamed (e.g. through
         # a 'git mv' or through a history rewrite with 'git-filter-repo')
@@ -636,7 +637,7 @@ class BranchesDiff(Output):
             data[pr.number]["missing_commits"] = [commit.hexsha for commit in commits]
         return data
 
-    def _get_branch_commits(self, branch, rootdir, path=".", since="2025-01-01"):
+    def _get_branch_commits(self, branch, rootdir, path=".", since=None):
         """Get commits from the local repository for the given `branch`.
 
         An optional `path` parameter can be set to limit commits to a given folder.
